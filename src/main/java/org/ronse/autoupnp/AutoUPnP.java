@@ -2,8 +2,14 @@ package org.ronse.autoupnp;
 
 import com.dosse.upnp.UPnP;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.ronse.autoupnp.commands.OpenPort;
+import org.ronse.autoupnp.exceptions.AutoUPnPPortDisabledException;
+import org.ronse.autoupnp.util.AutoUPnPUtil;
+import org.ronse.autoupnp.util.ReplacementPair;
 
 import java.util.ArrayList;
 
@@ -15,7 +21,21 @@ public final class AutoUPnP extends JavaPlugin {
     public static final int COLOR_WARN      = 0xfecf3e;
     public static final int COLOR_DANGER    = 0xdc3545;
 
-    public static final ArrayList<ConfigHelper.Port> ports = new ArrayList<>();;
+    public static final ArrayList<ConfigHelper.Port> ports = new ArrayList<>();
+
+    public static final TextComponent OPEN_PORTS_TRY;
+    public static final TextComponent OPEN_PORTS_SUCCESS;
+    public static final TextComponent OPEN_PORTS_FAILED;
+
+    public static final TextComponent ON_DISABLE_CLOSE;
+
+    static {
+        OPEN_PORTS_TRY = Component.text("Trying to open <port>").color(TextColor.color(COLOR_INFO));
+        OPEN_PORTS_SUCCESS = Component.text("<port> is open").color(TextColor.color(COLOR_INFO));
+        OPEN_PORTS_FAILED = Component.text("Failed to open <port> \n<ex>").color(TextColor.color(COLOR_DANGER));
+
+        ON_DISABLE_CLOSE = Component.text("<port> closed").color(TextColor.color(COLOR_WARN));
+    }
 
     public AutoUPnP() {
         instance = this;
@@ -25,30 +45,30 @@ public final class AutoUPnP extends JavaPlugin {
     @Override
     public void onEnable() {
         openPorts();
+        registerCommands();
+    }
+
+    public void registerCommands() {
+        new OpenPort();
     }
 
     public void openPorts() {
         configHelper.reload();
         configHelper.config.ports.forEach(port -> {
             try {
-                getComponentLogger().info(Component.text("Trying to open port " + port.toString()).
-                        color(TextColor.color(COLOR_INFO)));
+                getComponentLogger().info(AutoUPnPUtil.replace(OPEN_PORTS_TRY, "<port>", port.toString()));
                 openPort(port);
-                getComponentLogger().info(Component.text(port + " is open").
-                        color(TextColor.color(COLOR_INFO)));
+                getComponentLogger().info(AutoUPnPUtil.replace(OPEN_PORTS_SUCCESS, "<port>", port.toString()));
             } catch (RuntimeException ex) {
-                getComponentLogger().error(Component.text("Failed to open port " + port.toString() +
-                        "\n" + ex).color(TextColor.color(COLOR_DANGER)));
+                getComponentLogger().info(AutoUPnPUtil.replace(OPEN_PORTS_FAILED,
+                        new ReplacementPair("<port>", port.toString()),
+                        new ReplacementPair("<ex>", ex.toString())));
             }
         });
     }
 
     public void openPort(ConfigHelper.Port port) throws RuntimeException {
-        if(port.disabled()) {
-            getComponentLogger().info(Component.text(port + " is disabled")
-                    .color(TextColor.color(COLOR_WARN)));
-            return;
-        }
+        if(port.disabled()) throw new AutoUPnPPortDisabledException();
 
         UPnP.waitInit();
         if(!UPnP.defaultGW.openPort(port.ip(), port.internalPort(), port.externalPort(), port.description(),
@@ -61,8 +81,7 @@ public final class AutoUPnP extends JavaPlugin {
     public void onDisable() {
         ports.forEach(port -> {
             UPnP.defaultGW.closePort(port.externalPort(), port.protocol() == Protocol.UDP);
-            getComponentLogger().info(Component.text(port + " closed")
-                    .color(TextColor.color(COLOR_WARN)));
+            getComponentLogger().info(AutoUPnPUtil.replace(ON_DISABLE_CLOSE, "<port>", port.toString()));
         });
 
         ports.clear();

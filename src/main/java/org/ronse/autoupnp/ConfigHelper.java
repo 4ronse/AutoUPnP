@@ -13,6 +13,15 @@ import java.io.*;
 import java.util.List;
 
 public final class ConfigHelper {
+    /**
+     *
+     * @param ip                Internal IP
+     * @param internalPort      Internal Port
+     * @param externalPort      External Port
+     * @param protocol          {@link Protocol} (Either UDP or TCP)
+     * @param description       Short description of service
+     * @param disabled          Is disabled
+     */
     public record Port(String ip,
                        @Comment("Integer between 0-65535") int internalPort,
                        @Comment("Integer between 0-65535") int externalPort,
@@ -43,5 +52,6 @@ public final class ConfigHelper {
 
     public void update() {
         YamlConfigurations.save(file.getAbsoluteFile().toPath(), BaseConfiguration.class, this.config);
+        AutoUPnP.instance.getComponentLogger().info(Component.text("ports.yml Saved").color(TextColor.color(AutoUPnP.COLOR_INFO)));
     }
 }
