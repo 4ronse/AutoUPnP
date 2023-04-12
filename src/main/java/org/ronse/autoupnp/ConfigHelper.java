@@ -5,11 +5,8 @@ import de.exlll.configlib.Configuration;
 import de.exlll.configlib.YamlConfigurations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.*;
+import java.io.File;
 import java.util.List;
 
 public final class ConfigHelper {
@@ -22,13 +19,19 @@ public final class ConfigHelper {
      * @param description       Short description of service
      * @param disabled          Is disabled
      */
-    public record Port(String ip,
+    public record Port (String ip,
                        @Comment("Integer between 0-65535") int internalPort,
                        @Comment("Integer between 0-65535") int externalPort,
                        @Comment("Either TCP or UDP") Protocol protocol,
                        @Comment("Service description such as \"Minecraft Server\"") String description,
                        boolean disabled
-    ) {}
+    ) {
+        @Override
+        public boolean equals(Object other) {
+            if(!(other instanceof Port)) return false;
+            return this.internalPort == ((Port) other).internalPort || this.externalPort == ((Port) other).externalPort;
+        }
+    }
 
     @Configuration
     public static class BaseConfiguration {

@@ -5,3 +5,18 @@ api-version: 1.19
 load: STARTUP
 authors: [ 4ronse ]
 description: Automatically forwards UPnP ports
+
+commands:
+  open-port:
+    aliases:
+      - add-port
+    description: Opens a UPnP Port
+    usage: /open-port <IP> <Internal Port> <External Port> <Protocol> <Description>
+
+
+permissions:
+  AutoUPnP.manage:
+    default: true
+    description: Allows player to manage ports
+
+default-permission: op

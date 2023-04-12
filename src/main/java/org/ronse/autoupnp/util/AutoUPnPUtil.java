@@ -12,4 +12,6 @@ public class AutoUPnPUtil {
         for(ReplacementPair pair : pairs) component = replace(component, pair.left(), pair.right());
         return component;
     }
+
+    // public static void
 }
