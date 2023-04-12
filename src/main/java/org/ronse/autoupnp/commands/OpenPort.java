@@ -1,6 +1,6 @@
 package org.ronse.autoupnp.commands;
 
-import org.apache.commons.lang3.ArrayUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -32,14 +32,9 @@ public class OpenPort extends AutoUPnPCommand {
 
     @Override
     public void execute(CommandSender sender, Command command, String label, String[] args) {
-        if(args.length < 5) {
-            String argString = "";
-
-            if(argNames.length == 0 || args.length > argNames.length) argString = "Unknown";
-            else argString = String.join(", ", Arrays.copyOfRange(argNames, args.length, argNames.length));
-
-            sender.sendMessage(AutoUPnPUtil.replace(MISSING_ARGUMENTS, "<arguments>", argString));
-
+        Component errorComp = validateNumArguments(5, args);
+        if(errorComp != null) {
+            sender.sendMessage(errorComp);
             return;
         }
 
@@ -47,7 +42,7 @@ public class OpenPort extends AutoUPnPCommand {
         final int internal          = Integer.parseInt(args[1]);
         final int external          = Integer.parseInt(args[2]);
         final Protocol protocol     = Protocol.fromString(args[3]);
-        final String description    = String.join(" ", ArrayUtils.subarray(args, 3, args.length - 1));
+        final String description    = String.join(" ", Arrays.copyOfRange(args, 4, args.length));
 
         ConfigHelper.Port port = new ConfigHelper.Port(ip, internal, external, protocol, description, false);
         if(AutoUPnP.configHelper.config.ports.contains(port)) {

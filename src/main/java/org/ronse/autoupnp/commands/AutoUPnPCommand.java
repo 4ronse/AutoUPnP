@@ -11,9 +11,12 @@ import org.jetbrains.annotations.Nullable;
 import org.ronse.autoupnp.AutoUPnP;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
+    public static final String DEFAULT_PERMISSION = "AutoUPnP.manage";
+
     public static final TextComponent NO_PERMISSION;
     public static final TextComponent COMMAND_LOADED;
     public static final TextComponent MISSING_ARGUMENTS;
@@ -33,6 +36,18 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
 
     protected String permission;
     protected final String[] argNames;
+
+    public AutoUPnPCommand(String name) {
+        this(name, DEFAULT_PERMISSION);
+    }
+
+    public AutoUPnPCommand(String name, String permission) {
+        this(name, permission, List.of());
+    }
+
+    public AutoUPnPCommand(String name, List<String> aliases) {
+        this(name, DEFAULT_PERMISSION, aliases);
+    }
 
     public AutoUPnPCommand(String name, String perm, List<String> aliases) {
         this(name, perm, aliases, new String[]{});
@@ -62,6 +77,19 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         return List.of();
+    }
+
+    public final Component validateNumArguments(final int numArgs, final String[] args) {
+        if(args.length < numArgs) {
+            String argString = "";
+
+            if(argNames.length == 0 || args.length > argNames.length) argString = "Unknown";
+            else argString = String.join(", ", Arrays.copyOfRange(argNames, args.length, argNames.length));
+
+            return AutoUPnPUtil.replace(MISSING_ARGUMENTS, "<arguments>", argString);
+        }
+
+        return null;
     }
 
     public abstract void execute(CommandSender sender, Command command, String label, String[] args);

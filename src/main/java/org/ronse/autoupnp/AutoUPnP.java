@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.ronse.autoupnp.commands.ClosePort;
+import org.ronse.autoupnp.commands.ListPorts;
 import org.ronse.autoupnp.commands.OpenPort;
 import org.ronse.autoupnp.exceptions.AutoUPnPPortDisabledException;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
@@ -41,13 +43,13 @@ public final class AutoUPnP extends JavaPlugin {
                 .append(Component.text("]").color(TextColor.color(COLOR_WARN)))
                 .append(Component.space());
 
-        OPEN_PORTS_OPEN = PREFIX.append(Component.text("<port> is open already!").color(TextColor.color(COLOR_INFO)));
-        OPEN_PORTS_TRY = PREFIX.append(Component.text("Trying to open <port>").color(TextColor.color(COLOR_INFO)));
-        OPEN_PORTS_SUCCESS = PREFIX.append(Component.text("<port> is open").color(TextColor.color(COLOR_SUCCESS)));
-        OPEN_PORTS_DISABLED = PREFIX.append(Component.text("<port> is disabled, thus won't be forwarded").color(TextColor.color(COLOR_WARN)));
-        OPEN_PORTS_FAILED = PREFIX.append(Component.text("Failed to open <port> \n<ex>").color(TextColor.color(COLOR_DANGER)));
+        OPEN_PORTS_OPEN         = PREFIX.append(Component.text("<port> is open already!").color(TextColor.color(COLOR_INFO)));
+        OPEN_PORTS_TRY          = PREFIX.append(Component.text("Trying to open <port>").color(TextColor.color(COLOR_INFO)));
+        OPEN_PORTS_SUCCESS      = PREFIX.append(Component.text("<port> is open").color(TextColor.color(COLOR_SUCCESS)));
+        OPEN_PORTS_DISABLED     = PREFIX.append(Component.text("<port> is disabled, thus won't be forwarded").color(TextColor.color(COLOR_WARN)));
+        OPEN_PORTS_FAILED       = PREFIX.append(Component.text("Failed to open <port> \n<ex>").color(TextColor.color(COLOR_DANGER)));
 
-        ON_DISABLE_CLOSE = PREFIX.append(Component.text("<port> closed").color(TextColor.color(COLOR_WARN)));
+        ON_DISABLE_CLOSE        = PREFIX.append(Component.text("<port> closed").color(TextColor.color(COLOR_WARN)));
     }
 
     public AutoUPnP() {
@@ -63,6 +65,8 @@ public final class AutoUPnP extends JavaPlugin {
 
     public void registerCommands() {
         new OpenPort();
+        new ClosePort();
+        new ListPorts();
     }
 
     public void openPorts() { this.openPorts(Bukkit.getConsoleSender()); }
@@ -117,6 +121,11 @@ public final class AutoUPnP extends JavaPlugin {
                 port.protocol() == Protocol.UDP)) throw new RuntimeException("Failed to open port!");
 
         ports.add(port);
+        ports.sort(ConfigHelper.Port::compareTo);
+    }
+
+    public void closePort(ConfigHelper.Port port) {
+        if(UPnP.defaultGW.closePort(port.externalPort(), port.protocol() == Protocol.UDP)) ports.remove(port);
     }
 
 }

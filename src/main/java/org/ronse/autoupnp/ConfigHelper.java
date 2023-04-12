@@ -5,6 +5,7 @@ import de.exlll.configlib.Configuration;
 import de.exlll.configlib.YamlConfigurations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -25,11 +26,16 @@ public final class ConfigHelper {
                        @Comment("Either TCP or UDP") Protocol protocol,
                        @Comment("Service description such as \"Minecraft Server\"") String description,
                        boolean disabled
-    ) {
+    ) implements Comparable<Port> {
         @Override
         public boolean equals(Object other) {
             if(!(other instanceof Port)) return false;
             return this.internalPort == ((Port) other).internalPort || this.externalPort == ((Port) other).externalPort;
+        }
+
+        @Override
+        public int compareTo(@NotNull Port other) {
+            return Integer.compare(this.internalPort, other.internalPort);
         }
     }
 

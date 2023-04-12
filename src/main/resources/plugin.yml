@@ -12,6 +12,12 @@ commands:
       - add-port
     description: Opens a UPnP Port
     usage: /open-port <IP> <Internal Port> <External Port> <Protocol> <Description>
+  list-ports:
+    description: Lists all open ports
+    usage: /list-ports
+  close-port:
+    description:  Closes specified port
+    usage: /close-port <Protocol> <External Port>
 
 
 permissions:
