@@ -1,0 +1,7 @@
+name: AutoUPnP
+version: '${version}'
+main: org.ronse.autoupnp.AutoUPnP
+api-version: 1.19
+load: STARTUP
+authors: [ 4ronse ]
+description: Automatically forwards UPnP ports
