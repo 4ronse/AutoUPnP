@@ -20,11 +20,13 @@ public final class AutoUPnP extends JavaPlugin {
     public static ConfigHelper configHelper;
 
     public static final int COLOR_INFO      = 0x0dcaf0;
+    public static final int COLOR_SUCCESS   = 0x005E0C;
     public static final int COLOR_WARN      = 0xfecf3e;
     public static final int COLOR_DANGER    = 0xdc3545;
 
     public static final ArrayList<ConfigHelper.Port> ports = new ArrayList<>();
 
+    public static final TextComponent PREFIX;
     public static final TextComponent OPEN_PORTS_OPEN;
     public static final TextComponent OPEN_PORTS_TRY;
     public static final TextComponent OPEN_PORTS_SUCCESS;
@@ -34,13 +36,18 @@ public final class AutoUPnP extends JavaPlugin {
     public static final TextComponent ON_DISABLE_CLOSE;
 
     static {
-        OPEN_PORTS_OPEN = Component.text("<port> is open already!").color(TextColor.color(COLOR_INFO));
-        OPEN_PORTS_TRY = Component.text("Trying to open <port>").color(TextColor.color(COLOR_INFO));
-        OPEN_PORTS_SUCCESS = Component.text("<port> is open").color(TextColor.color(COLOR_INFO));
-        OPEN_PORTS_DISABLED = Component.text("<port> is disabled, thus won't be forwarded").color(TextColor.color(COLOR_WARN));
-        OPEN_PORTS_FAILED = Component.text("Failed to open <port> \n<ex>").color(TextColor.color(COLOR_DANGER));
+        PREFIX = Component.text("[").color(TextColor.color(COLOR_WARN))
+                .append(Component.text("AutoUPnP").color(TextColor.color(COLOR_INFO)))
+                .append(Component.text("]").color(TextColor.color(COLOR_WARN)))
+                .append(Component.space());
 
-        ON_DISABLE_CLOSE = Component.text("<port> closed").color(TextColor.color(COLOR_WARN));
+        OPEN_PORTS_OPEN = PREFIX.append(Component.text("<port> is open already!").color(TextColor.color(COLOR_INFO)));
+        OPEN_PORTS_TRY = PREFIX.append(Component.text("Trying to open <port>").color(TextColor.color(COLOR_INFO)));
+        OPEN_PORTS_SUCCESS = PREFIX.append(Component.text("<port> is open").color(TextColor.color(COLOR_SUCCESS)));
+        OPEN_PORTS_DISABLED = PREFIX.append(Component.text("<port> is disabled, thus won't be forwarded").color(TextColor.color(COLOR_WARN)));
+        OPEN_PORTS_FAILED = PREFIX.append(Component.text("Failed to open <port> \n<ex>").color(TextColor.color(COLOR_DANGER)));
+
+        ON_DISABLE_CLOSE = PREFIX.append(Component.text("<port> closed").color(TextColor.color(COLOR_WARN)));
     }
 
     public AutoUPnP() {
