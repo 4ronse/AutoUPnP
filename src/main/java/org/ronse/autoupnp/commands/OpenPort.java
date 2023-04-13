@@ -1,6 +1,5 @@
 package org.ronse.autoupnp.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +11,8 @@ import org.ronse.autoupnp.Protocol;
 import org.ronse.autoupnp.records.Port;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 import org.ronse.autoupnp.util.ReplacementPair;
+import org.ronse.autoupnp.util.validation.Patterns;
+import org.ronse.autoupnp.util.validation.Validator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,11 +36,7 @@ public class OpenPort extends AutoUPnPCommand {
 
     @Override
     public void execute(CommandSender sender, Command command, String label, String[] args) {
-        Component errorComp = validateNumArguments(5, args);
-        if(errorComp != null) {
-            sender.sendMessage(errorComp);
-            return;
-        }
+        if(!validateArgs(sender, args)) return;
 
         final String    ip              = args[0];
         final int       internal        = Integer.parseInt(args[1]);
@@ -65,5 +62,39 @@ public class OpenPort extends AutoUPnPCommand {
         ConfigHelper.getConfig().ports.add(port);
         ConfigHelper.getInstance().update();
         sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_SUCCESS, "<port>", port.toString()));
+    }
+
+    @Override
+    public int minArgs() {
+        return 5;
+    }
+
+    @Validator(name = "IP", position = 0)
+    boolean validateIP(String ip) {
+        return Patterns.IPV4_PATTERN.matcher(ip).matches();
+    }
+
+    @Validator(name = "Internal Port", position = 1)
+    boolean validateIPort(String p) {
+        try {
+            int port = Integer.parseInt(p);
+            return port > 0 && port < 65536;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    @Validator(name = "External Port", position = 2)
+    boolean validateEPort(String p) {
+        return validateIPort(p);
+    }
+
+    @Validator(name = "Protocol", position = 3)
+    boolean validateProtocol(String prot) {
+        return prot.equalsIgnoreCase("TCP") || prot.equalsIgnoreCase("UDP");
+    }
+
+    @Validator(name = "Description", position = 4)
+    boolean validateDescription(String desc) {
+        return !desc.isBlank() && !desc.isEmpty() && desc.length() < 18;
     }
 }

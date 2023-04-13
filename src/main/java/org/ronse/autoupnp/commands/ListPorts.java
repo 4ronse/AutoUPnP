@@ -16,6 +16,8 @@ public class ListPorts extends AutoUPnPCommand {
 
     @Override
     public void execute(CommandSender sender, Command command, String label, String[] args) {
+        if(!validateArgs(sender, args)) return;
+
         PortHelper.allPorts().forEach(port -> {
             Component comp = AutoUPnP.PREFIX.append(
                     Component.text("<ip>:<int> -> <ext> [<protocol>]").color(TextColor.color(AutoUPnP.COLOR_INFO))
@@ -26,5 +28,10 @@ public class ListPorts extends AutoUPnPCommand {
                     new ReplacementPair("<ext>", String.valueOf(port.externalPort())),
                     new ReplacementPair("<protocol>", port.protocol().toString())));
         });
+    }
+
+    @Override
+    public int numArgs() {
+        return 0;
     }
 }

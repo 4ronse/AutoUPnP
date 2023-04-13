@@ -18,4 +18,9 @@ public class ReloadConfig extends AutoUPnPCommand {
 
         sender.sendMessage(ConfigHelper.CONFIG_RELOADED);
     }
+
+    @Override
+    public int numArgs() {
+        return 0;
+    }
 }
