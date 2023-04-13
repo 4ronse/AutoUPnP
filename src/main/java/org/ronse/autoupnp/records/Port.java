@@ -5,6 +5,9 @@ import de.exlll.configlib.Comment;
 import org.jetbrains.annotations.NotNull;
 import org.ronse.autoupnp.Protocol;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 /**
  *
  * @param ip                Internal IP
@@ -15,8 +18,8 @@ import org.ronse.autoupnp.Protocol;
  * @param disabled          Is disabled
  */
 public record Port (String ip,
-                    @Comment("Integer between 0-65535") int internalPort,
-                    @Comment("Integer between 0-65535") int externalPort,
+                    @Comment("Integer between 0-65535") @Min(0) @Max(65535) int internalPort,
+                    @Comment("Integer between 0-65535") @Min(0) @Max(65535) int externalPort,
                     @Comment("Either TCP or UDP") Protocol protocol,
                     @Comment("Service description such as \"Minecraft Server\"") String description,
                     boolean disabled

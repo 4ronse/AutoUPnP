@@ -9,10 +9,13 @@ import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ronse.autoupnp.AutoUPnP;
+import org.ronse.autoupnp.exceptions.AutoUPnPNotValidatorFunction;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
+import org.ronse.autoupnp.util.validation.Validator;
 
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
     public static final String DEFAULT_PERMISSION = "AutoUPnP.manage";
@@ -93,4 +96,64 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
     }
 
     public abstract void execute(CommandSender sender, Command command, String label, String[] args);
+
+    public int numArgs() { return -1; }
+    public int minArgs() { return -1; }
+    public int maxArgs() { return -1; }
+
+    protected final boolean validateArgs(CommandSender sender, String[] args) {
+        TextComponent[] validationMessages = prepareMessages(args);
+        if(validationMessages.length == 0) return true;
+        for(TextComponent vm : validationMessages)
+            sender.sendMessage(AutoUPnP.PREFIX.append(vm.color(TextColor.color(AutoUPnP.COLOR_DANGER))));
+
+        return false;
+    }
+
+    private TextComponent[] prepareMessages(String[] args) {
+        if(numArgs() >= 0 && numArgs() != args.length) return new TextComponent[]{Component.text("Number of arguments is invalid.")};
+        if(minArgs() >= 0 && minArgs() > args.length)  return new TextComponent[]{Component.text("Not enough arguments.")};
+        if(maxArgs() >= 0 && maxArgs() < args.length)  return new TextComponent[]{Component.text("Too many arguments")};
+
+        String[] res = _validateArgs(args);
+        TextComponent[] comps = new TextComponent[res.length];
+        for (int i = 0; i < res.length; i++) comps[i] = Component.text(res[i] + " is either invalid or missing.");
+
+        return comps;
+    }
+
+    private String[] _validateArgs(String[] args) {
+        ArrayList<String> invalidArgs = new ArrayList<>();
+
+        Class<? extends AutoUPnPCommand> clazz = this.getClass();
+        Method[] publicMethods = clazz.getMethods();
+        Method[] privateMethods = clazz.getDeclaredMethods();
+
+        Set<Method> methods = new HashSet<>();
+        methods.addAll(Arrays.asList(publicMethods));
+        methods.addAll(Arrays.asList(privateMethods));
+
+        for(Method method : methods) {
+            final Validator v = method.getAnnotation(Validator.class);
+            if(v == null) continue;
+
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if(paramTypes.length != 1 || paramTypes[0] != String.class) throw new AutoUPnPNotValidatorFunction();
+
+            method.setAccessible(true);
+
+            try {
+                if (!((boolean) method.invoke(this, args[v.position()]))) invalidArgs.add(v.name());
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                AutoUPnP.instance.getSLF4JLogger().trace("Failed to validate", ex);
+            } catch (ArrayIndexOutOfBoundsException ex) {
+                if(!v.required()) continue;
+                invalidArgs.add(v.name());
+            }
+        }
+
+        Collections.reverse(invalidArgs);
+        String[] invalidArgsArray = new String[invalidArgs.size()];
+        return invalidArgs.toArray(invalidArgsArray);
+    }
 }

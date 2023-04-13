@@ -119,7 +119,8 @@ public class PortHelper {
      * @param port {@link Port} to close
      * @return Result
      */
-    public static int closePort(@NotNull final Port port) {
+    public static int closePort(final Port port) {
+        if(port == null) return RESULT_ERROR_GENERIC;
         if(gateway == null) return setErrorMessage(RESULT_NO_GATEWAY, ERROR_NO_GATEWAY);
         if(!isPortOpen(port)) return setErrorMessage(RESULT_PORT_NOT_OPEN, ERROR_PORT_NOT_OPEN, new ReplacementPair("<port>", String.valueOf(port.externalPort())));
 
@@ -138,7 +139,11 @@ public class PortHelper {
      * @return Result
      */
     public static int closePort(@NotNull final Protocol prot, final int ext) {
-        return closePort(getOpenPort(prot, ext));
+        int res = closePort(getOpenPort(prot, ext));
+        if(res == RESULT_ERROR_GENERIC)
+            res = setErrorMessage(RESULT_PORT_NOT_OPEN, ERROR_PORT_NOT_OPEN, new ReplacementPair("<port>", String.valueOf(ext)));
+
+        return res;
     }
 
     /**
@@ -164,8 +169,8 @@ public class PortHelper {
      * @param port {@link Port}
      * @return Is port open
      */
-    public static boolean isPortOpen(@NotNull final Port port) {
-        return openPorts.contains(port);
+    public static boolean isPortOpen(final Port port) {
+        return port != null && openPorts.contains(port);
     }
 
     public static String getLastErrorMessage() {

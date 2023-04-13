@@ -1,6 +1,5 @@
 package org.ronse.autoupnp.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +11,7 @@ import org.ronse.autoupnp.Protocol;
 import org.ronse.autoupnp.records.Port;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 import org.ronse.autoupnp.util.ReplacementPair;
+import org.ronse.autoupnp.util.validation.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +24,7 @@ public class ClosePort extends AutoUPnPCommand {
 
     @Override
     public void execute(CommandSender sender, Command command, String label, String[] args) {
-        Component errorComp = validateNumArguments(2, args);
-        if(errorComp != null) {
-            sender.sendMessage(errorComp);
-            return;
-        }
+        if(!validateArgs(sender, args)) return;
 
         final Protocol  protocol        = Protocol.fromString(args[0]);
         final int       externalPort    = Integer.parseInt(args[1]);
@@ -62,5 +58,25 @@ public class ClosePort extends AutoUPnPCommand {
         if(args.length == 2) PortHelper.allPorts().forEach(port -> pos.add(String.valueOf(port.externalPort())));
 
         return pos;
+    }
+
+    @Override
+    public int numArgs() {
+        return 2;
+    }
+
+    @Validator(name = "Protocol", position = 0)
+    boolean validateProtocol(String protocol) {
+        return protocol.equalsIgnoreCase("TCP") || protocol.equalsIgnoreCase("UDP");
+    }
+
+    @Validator(name = "External Port", position = 1)
+    boolean validateExternalPort(String arg) {
+        try {
+            int port = Integer.parseInt(arg);
+            return port > 0 && port < 65536;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }

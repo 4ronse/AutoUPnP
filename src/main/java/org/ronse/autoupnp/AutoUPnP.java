@@ -4,10 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.ronse.autoupnp.commands.ClosePort;
-import org.ronse.autoupnp.commands.ListPorts;
-import org.ronse.autoupnp.commands.OpenPort;
-import org.ronse.autoupnp.commands.ReloadConfig;
+import org.ronse.autoupnp.commands.*;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 
 import java.util.List;
@@ -37,7 +34,8 @@ public final class AutoUPnP extends JavaPlugin {
                 .append(Component.text("]").color(TextColor.color(COLOR_WARN)))
                 .append(Component.space());
 
-        FAILED_TO_EXECUTE_COMMAND       = PREFIX.append(Component.text("Failed to execute <cmd> \n<err>").color(TextColor.color(COLOR_DANGER)));
+        FAILED_TO_EXECUTE_COMMAND       = PREFIX.append(Component.text("Failed to execute <cmd>").color(TextColor.color(COLOR_DANGER)))
+                .append(Component.newline()).append(PREFIX).append(Component.text("<err>").color(TextColor.color(COLOR_DANGER)));
 
         PORT_OPEN_ALREADY               = PREFIX.append(Component.text("<port> is open already!").color(TextColor.color(COLOR_WARN)));
         PORT_OPEN_SUCCESS               = PREFIX.append(Component.text("<port> is open").color(TextColor.color(COLOR_SUCCESS)));

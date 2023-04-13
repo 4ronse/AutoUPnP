@@ -38,6 +38,7 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT"
 
     implementation "com.github.Exlll.ConfigLib:configlib-yaml:4.2.0"
+    implementation "javax.validation:validation-api:2.0.1.Final"
 }
 
 def targetJavaVersion = 17

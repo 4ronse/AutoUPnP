@@ -5,9 +5,12 @@ import de.exlll.configlib.YamlConfigurations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.ronse.autoupnp.records.Port;
 
 import java.io.File;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.util.List;
 
 public final class ConfigHelper {
@@ -18,20 +21,31 @@ public final class ConfigHelper {
 
     @Configuration
     public static class BaseConfiguration {
-        public List<Port> ports = List.of(new Port("0.0.0.0", 25565, 25565, Protocol.TCP, "Minecraft Server", false));
+        public List<Port> ports;
+
+        public BaseConfiguration() {
+            String ip;
+            try {
+                ip = Inet4Address.getLocalHost().getHostAddress();
+            } catch (UnknownHostException ex) {
+                ip = "192.168.1.100";
+            }
+
+            ports = List.of(new Port(ip, Bukkit.getServer().getPort(), Bukkit.getServer().getPort(), Protocol.TCP, "Minecraft Server", false));
+        }
     }
 
     public BaseConfiguration config;
     private final File file = new File(AutoUPnP.instance.getDataFolder(), "ports.yml");
 
     private ConfigHelper() {
-        if(!file.exists()) YamlConfigurations.save(file.getAbsoluteFile().toPath(), BaseConfiguration.class,
-                new BaseConfiguration());
-
         reload();
     }
 
     public void reload() {
+        if(!file.exists()) YamlConfigurations.save(file.getAbsoluteFile().toPath(), BaseConfiguration.class,
+                new BaseConfiguration());
+
         config = YamlConfigurations.load(file.getAbsoluteFile().toPath(), BaseConfiguration.class);
         AutoUPnP.instance.getComponentLogger().info(CONFIG_RELOADED);
     }

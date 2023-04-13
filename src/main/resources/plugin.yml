@@ -21,6 +21,8 @@ commands:
   reload-ports:
     description: Closes all ports and reload ports.yml
     usage: /reload-ports
+  test-command:
+    description: simple test command
 
 
 permissions:
