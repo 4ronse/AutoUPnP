@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.ronse.autoupnp.commands.ClosePort;
 import org.ronse.autoupnp.commands.ListPorts;
 import org.ronse.autoupnp.commands.OpenPort;
+import org.ronse.autoupnp.commands.ReloadConfig;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 
 import java.util.List;
@@ -18,8 +19,6 @@ public final class AutoUPnP extends JavaPlugin {
     public static final int COLOR_SUCCESS   = 0x005E0C;
     public static final int COLOR_WARN      = 0xfecf3e;
     public static final int COLOR_DANGER    = 0xdc3545;
-
-    // public static final ArrayList<ConfigHelper.Port> ports = new ArrayList<>();
 
     public static final TextComponent PREFIX;
     public static final TextComponent FAILED_TO_EXECUTE_COMMAND;
@@ -59,6 +58,7 @@ public final class AutoUPnP extends JavaPlugin {
         new OpenPort();
         new ClosePort();
         new ListPorts();
+        new ReloadConfig();
     }
 
     public void openAllPorts() {

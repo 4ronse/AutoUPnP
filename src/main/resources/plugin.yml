@@ -18,6 +18,9 @@ commands:
   close-port:
     description:  Closes specified port
     usage: /close-port <Protocol> <External Port>
+  reload-ports:
+    description: Closes all ports and reload ports.yml
+    usage: /reload-ports
 
 
 permissions:
