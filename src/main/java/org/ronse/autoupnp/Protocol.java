@@ -7,4 +7,8 @@ public enum Protocol {
         if(string.equalsIgnoreCase("udp")) return UDP;
         return TCP;
     }
+
+    public boolean isUDP() {
+        return this == UDP;
+    }
 }

@@ -7,8 +7,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ronse.autoupnp.AutoUPnP;
 import org.ronse.autoupnp.ConfigHelper;
+import org.ronse.autoupnp.PortHelper;
 import org.ronse.autoupnp.Protocol;
+import org.ronse.autoupnp.records.Port;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
+import org.ronse.autoupnp.util.ReplacementPair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +27,7 @@ public class OpenPort extends AutoUPnPCommand {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         List<String> pos = new ArrayList<>();
 
-        if(args.length == 1) AutoUPnP.ports.forEach(port -> pos.add(port.ip()));
+        if(args.length == 1) PortHelper.allPorts().forEach(port -> pos.add(port.ip()));
         if(args.length == 4) pos.addAll(List.of("TCP", "UDP"));
 
         return pos;
@@ -38,20 +41,29 @@ public class OpenPort extends AutoUPnPCommand {
             return;
         }
 
-        final String ip             = args[0];
-        final int internal          = Integer.parseInt(args[1]);
-        final int external          = Integer.parseInt(args[2]);
-        final Protocol protocol     = Protocol.fromString(args[3]);
-        final String description    = String.join(" ", Arrays.copyOfRange(args, 4, args.length));
+        final String    ip              = args[0];
+        final int       internal        = Integer.parseInt(args[1]);
+        final int       external        = Integer.parseInt(args[2]);
+        final Protocol  protocol        = Protocol.fromString(args[3]);
+        final String    description     = String.join(" ", Arrays.copyOfRange(args, 4, args.length));
 
-        ConfigHelper.Port port = new ConfigHelper.Port(ip, internal, external, protocol, description, false);
-        if(AutoUPnP.configHelper.config.ports.contains(port)) {
-            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.OPEN_PORTS_OPEN, "<port>", port.toString()));
+        Port port = new Port(ip, internal, external, protocol, description, false);
+        if(ConfigHelper.getConfig().ports.contains(port)) {
+            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_ALREADY, "<port>", port.toString()));
             return;
         }
 
-        AutoUPnP.configHelper.config.ports.add(port);
-        AutoUPnP.configHelper.update();
-        AutoUPnP.instance.openPorts(sender);
+        int res = PortHelper.openPort(port);
+        if(res != PortHelper.RESULT_SUCCESS) {
+            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
+                    new ReplacementPair("<cmd>", label),
+                    new ReplacementPair("<err>", PortHelper.getLastErrorMessage())));
+
+            return;
+        }
+
+        ConfigHelper.getConfig().ports.add(port);
+        ConfigHelper.getInstance().update();
+        sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_SUCCESS, "<port>", port.toString()));
     }
 }

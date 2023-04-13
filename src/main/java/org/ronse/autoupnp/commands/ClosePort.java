@@ -1,32 +1,23 @@
 package org.ronse.autoupnp.commands;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ronse.autoupnp.AutoUPnP;
 import org.ronse.autoupnp.ConfigHelper;
+import org.ronse.autoupnp.PortHelper;
 import org.ronse.autoupnp.Protocol;
+import org.ronse.autoupnp.records.Port;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
+import org.ronse.autoupnp.util.ReplacementPair;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ClosePort extends AutoUPnPCommand {
-    public static final TextComponent PORT_CLOSED;
-    public static final TextComponent PORT_CLOSED_NOTIFICATION;
-    public static final TextComponent PORT_NO_EXIST;
-
-    static {
-        PORT_CLOSED                     = AutoUPnP.PREFIX.append(Component.text("<port> closed.").color(TextColor.color(AutoUPnP.COLOR_WARN)));
-        PORT_CLOSED_NOTIFICATION        = AutoUPnP.PREFIX.append(Component.text("Note that you can't reopen the port without reloading the plugin").color(TextColor.color(AutoUPnP.COLOR_WARN)));
-        PORT_NO_EXIST                   = AutoUPnP.PREFIX.append(Component.text("<port> isn't open").color(TextColor.color(AutoUPnP.COLOR_WARN)));
-    }
-
     public ClosePort() {
         super("close-port", DEFAULT_PERMISSION, List.of(), new String[] { "Protocol", "External Port" });
     }
@@ -39,31 +30,28 @@ public class ClosePort extends AutoUPnPCommand {
             return;
         }
 
-        final Protocol protocol = Protocol.fromString(args[0]);
-        final int externalPort = Integer.parseInt(args[1]);
-        final boolean removePort = args.length >= 3 && args[2].equalsIgnoreCase("true");
+        final Protocol  protocol        = Protocol.fromString(args[0]);
+        final int       externalPort    = Integer.parseInt(args[1]);
+        int res = PortHelper.closePort(protocol, externalPort);
 
-        ConfigHelper.Port port = getPort(externalPort, protocol);
-
-        if(port == null) {
-            sender.sendMessage(AutoUPnPUtil.replace(PORT_NO_EXIST, "<port>", String.valueOf(externalPort)));
+        if(res != PortHelper.RESULT_SUCCESS) {
+            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
+                    new ReplacementPair("<cmd>", label),
+                    new ReplacementPair("<err>", PortHelper.getLastErrorMessage())));
             return;
         }
 
-        AutoUPnP.instance.closePort(port);
-        if(removePort) {
-            AutoUPnP.configHelper.config.ports.remove(port);
-            AutoUPnP.configHelper.update();
+        final AtomicReference<Port> atomicPort = new AtomicReference<>(null);
+        ConfigHelper.getConfig().ports.forEach(port -> {
+            if(atomicPort.get() == null && port.protocol() == protocol && port.externalPort() == externalPort) atomicPort.set(port);
+        });
+
+        if(atomicPort.get() != null) {
+            ConfigHelper.getConfig().ports.remove(atomicPort.get());
+            ConfigHelper.getInstance().update();
         }
 
-        sender.sendMessage(AutoUPnPUtil.replace(PORT_CLOSED, "<port>", port.toString()));
-        sender.sendMessage(PORT_CLOSED_NOTIFICATION);
-    }
-
-    private ConfigHelper.Port getPort(int ext, Protocol proto) {
-        final AtomicReference<ConfigHelper.Port> atomicPort = new AtomicReference<>(null);
-        AutoUPnP.ports.forEach(p -> { if(p.protocol() == proto && p.externalPort() == ext) atomicPort.set(p); });
-        return atomicPort.get();
+        sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_CLOSE_SUCCESS, "<port>", String.valueOf(externalPort)));
     }
 
     @Override
@@ -71,8 +59,7 @@ public class ClosePort extends AutoUPnPCommand {
         List<String> pos = new ArrayList<>();
 
         if(args.length == 1) pos.addAll(List.of("TCP", "UDP"));
-        if(args.length == 2) AutoUPnP.ports.forEach(port -> pos.add(String.valueOf(port.externalPort())));
-        if(args.length == 3) pos.addAll(List.of("True", "False"));
+        if(args.length == 2) PortHelper.allPorts().forEach(port -> pos.add(String.valueOf(port.externalPort())));
 
         return pos;
     }

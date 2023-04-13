@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.ronse.autoupnp.AutoUPnP;
+import org.ronse.autoupnp.PortHelper;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 import org.ronse.autoupnp.util.ReplacementPair;
 
@@ -15,7 +16,7 @@ public class ListPorts extends AutoUPnPCommand {
 
     @Override
     public void execute(CommandSender sender, Command command, String label, String[] args) {
-        AutoUPnP.ports.forEach(port -> {
+        PortHelper.allPorts().forEach(port -> {
             Component comp = AutoUPnP.PREFIX.append(
                     Component.text("<ip>:<int> -> <ext> [<protocol>]").color(TextColor.color(AutoUPnP.COLOR_INFO))
             );
