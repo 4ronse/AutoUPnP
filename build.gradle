@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ronse'
-version = '1.0'
+version = '1.0.0'
 
 def useJettyVer = '9.3.30.v20211001'
 
