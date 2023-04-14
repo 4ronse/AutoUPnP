@@ -1,9 +1,12 @@
 package org.ronse.autoupnp;
 
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.ronse.autoupnp.commands.*;
 import org.ronse.autoupnp.util.AutoUPnPUtil;
 
@@ -47,6 +50,8 @@ public final class AutoUPnP extends JavaPlugin {
         ON_DISABLE_CLOSE                = PREFIX.append(Component.text("<port> closed").color(TextColor.color(COLOR_WARN)));
     }
 
+    private BukkitAudiences adventure; // idk what that is
+
     public AutoUPnP() {
         instance = this;
         PortHelper.initialize();
@@ -73,10 +78,28 @@ public final class AutoUPnP extends JavaPlugin {
     public void onEnable() {
         openAllPorts();
         registerCommands();
+
+        this.adventure = BukkitAudiences.create(this);
     }
 
     @Override
     public void onDisable() {
         closeAllPorts();
+
+        if(this.adventure != null) {
+            this.adventure.close();
+            this.adventure = null;
+        }
+    }
+
+    public ComponentLogger getComponentLogger() {
+        return ComponentLogger.logger(this.getClass());
+    }
+
+    public @NotNull BukkitAudiences adventure() {
+        if(this.adventure == null)
+            throw new IllegalStateException("Tried to access Adventure when the plugin was disabled!");
+
+        return this.adventure;
     }
 }

@@ -1,5 +1,6 @@
 package org.ronse.autoupnp.commands;
 
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public class OpenPort extends AutoUPnPCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, Command command, String label, String[] args) {
+    public void execute(CommandSender sender, Audience audience, Command command, String label, String[] args) {
         if(!validateArgs(sender, args)) return;
 
         final String    ip              = args[0];
@@ -46,13 +47,13 @@ public class OpenPort extends AutoUPnPCommand {
 
         Port port = new Port(ip, internal, external, protocol, description, false);
         if(ConfigHelper.getConfig().ports.contains(port)) {
-            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_ALREADY, "<port>", port.toString()));
+            audience.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_ALREADY, "<port>", port.toString()));
             return;
         }
 
         int res = PortHelper.openPort(port);
         if(res != PortHelper.RESULT_SUCCESS) {
-            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
+            audience.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
                     new ReplacementPair("<cmd>", label),
                     new ReplacementPair("<err>", PortHelper.getLastErrorMessage())));
 
@@ -61,7 +62,7 @@ public class OpenPort extends AutoUPnPCommand {
 
         ConfigHelper.getConfig().ports.add(port);
         ConfigHelper.getInstance().update();
-        sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_SUCCESS, "<port>", port.toString()));
+        audience.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_OPEN_SUCCESS, "<port>", port.toString()));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.ronse.autoupnp.commands;
 
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ public class ClosePort extends AutoUPnPCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, Command command, String label, String[] args) {
+    public void execute(CommandSender sender, Audience audience, Command command, String label, String[] args) {
         if(!validateArgs(sender, args)) return;
 
         final Protocol  protocol        = Protocol.fromString(args[0]);
@@ -31,7 +32,7 @@ public class ClosePort extends AutoUPnPCommand {
         int res = PortHelper.closePort(protocol, externalPort);
 
         if(res != PortHelper.RESULT_SUCCESS) {
-            sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
+            audience.sendMessage(AutoUPnPUtil.replace(AutoUPnP.FAILED_TO_EXECUTE_COMMAND,
                     new ReplacementPair("<cmd>", label),
                     new ReplacementPair("<err>", PortHelper.getLastErrorMessage())));
             return;
@@ -47,7 +48,7 @@ public class ClosePort extends AutoUPnPCommand {
             ConfigHelper.getInstance().update();
         }
 
-        sender.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_CLOSE_SUCCESS, "<port>", String.valueOf(externalPort)));
+        audience.sendMessage(AutoUPnPUtil.replace(AutoUPnP.PORT_CLOSE_SUCCESS, "<port>", String.valueOf(externalPort)));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.ronse.autoupnp.commands;
 
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.ronse.autoupnp.AutoUPnP;
@@ -11,12 +12,12 @@ public class ReloadConfig extends AutoUPnPCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, Command command, String label, String[] args) {
+    public void execute(CommandSender sender, Audience audience, Command command, String label, String[] args) {
         ConfigHelper.getInstance().reload();
         AutoUPnP.instance.closeAllPorts();
         AutoUPnP.instance.openAllPorts();
 
-        sender.sendMessage(ConfigHelper.CONFIG_RELOADED);
+        audience.sendMessage(ConfigHelper.CONFIG_RELOADED);
     }
 
     @Override

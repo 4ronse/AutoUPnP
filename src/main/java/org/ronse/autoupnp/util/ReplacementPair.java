@@ -1,8 +1,6 @@
 package org.ronse.autoupnp.util;
 
-import it.unimi.dsi.fastutil.Pair;
-
-public class ReplacementPair implements Pair<String, String> {
+public class ReplacementPair {
     private final String match;
     private final String replacement;
 
@@ -11,9 +9,7 @@ public class ReplacementPair implements Pair<String, String> {
         this.replacement = replacement;
     }
 
-    @Override
     public String left() { return match; }
 
-    @Override
     public String right() { return replacement; }
 }

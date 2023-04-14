@@ -1,5 +1,6 @@
 package org.ronse.autoupnp.commands;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
@@ -72,8 +73,10 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if(sender instanceof ConsoleCommandSender || permission == null || sender.hasPermission(permission)) execute(sender, command, label, args);
-        else sender.sendMessage(AutoUPnPUtil.replace(NO_PERMISSION, "<command-name>", command.getName()));
+        Audience audience = AutoUPnP.instance.adventure().sender(sender);
+
+        if(sender instanceof ConsoleCommandSender || permission == null || sender.hasPermission(permission)) execute(sender, audience, command, label, args);
+        else audience.sendMessage(AutoUPnPUtil.replace(NO_PERMISSION, "<command-name>", command.getName()));
         return true;
     }
 
@@ -82,30 +85,19 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
         return List.of();
     }
 
-    public final Component validateNumArguments(final int numArgs, final String[] args) {
-        if(args.length < numArgs) {
-            String argString = "";
-
-            if(argNames.length == 0 || args.length > argNames.length) argString = "Unknown";
-            else argString = String.join(", ", Arrays.copyOfRange(argNames, args.length, argNames.length));
-
-            return AutoUPnPUtil.replace(MISSING_ARGUMENTS, "<arguments>", argString);
-        }
-
-        return null;
-    }
-
-    public abstract void execute(CommandSender sender, Command command, String label, String[] args);
+    public abstract void execute(CommandSender sender, Audience audience, Command command, String label, String[] args);
 
     public int numArgs() { return -1; }
     public int minArgs() { return -1; }
     public int maxArgs() { return -1; }
 
     protected final boolean validateArgs(CommandSender sender, String[] args) {
+        Audience audience = AutoUPnP.instance.adventure().sender(sender);
+
         TextComponent[] validationMessages = prepareMessages(args);
         if(validationMessages.length == 0) return true;
         for(TextComponent vm : validationMessages)
-            sender.sendMessage(AutoUPnP.PREFIX.append(vm.color(TextColor.color(AutoUPnP.COLOR_DANGER))));
+            audience.sendMessage(AutoUPnP.PREFIX.append(vm.color(TextColor.color(AutoUPnP.COLOR_DANGER))));
 
         return false;
     }
@@ -145,7 +137,7 @@ public abstract class AutoUPnPCommand implements CommandExecutor, TabCompleter {
             try {
                 if (!((boolean) method.invoke(this, args[v.position()]))) invalidArgs.add(v.name());
             } catch (IllegalAccessException | InvocationTargetException ex) {
-                AutoUPnP.instance.getSLF4JLogger().trace("Failed to validate", ex);
+                AutoUPnP.instance.getComponentLogger().trace("Failed to validate", ex);
             } catch (ArrayIndexOutOfBoundsException ex) {
                 if(!v.required()) continue;
                 invalidArgs.add(v.name());
